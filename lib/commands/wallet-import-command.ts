@@ -61,3 +61,53 @@ export class WalletImportCommand implements CommandInterface {
         }
     }
 }
+
+
+export class WalletImportFromPrivateKeyCommand implements CommandInterface {
+
+    constructor(private privateKey: string, private alias: string) {
+    }
+    async run(): Promise<CommandResultInterface> {
+        if (!(await this.walletExists())) {
+            throw "wallet.json does NOT exist, please create one first with wallet-init"
+        }
+        const walletFileData: IValidatedWalletInfo = (await jsonFileReader(walletPath)) as IValidatedWalletInfo;
+        if (!walletFileData.imported) {
+            walletFileData.imported = {};
+        }
+        if (walletFileData.imported.hasOwnProperty(this.alias)) {
+            throw `Wallet alias ${this.alias} already exists!`
+        }
+        // Just make a backup for now to be safe
+        await jsonFileWriter(walletPath + '.' + (new Date()).getTime() + '.walletbackup', walletFileData);
+
+        // Get the wif and the address and ensure they match
+        const importedKeypair = ECPair.fromPrivateKey(Buffer.from(this.privateKey, 'hex'), {network: NETWORK});
+        const wif = importedKeypair.toWIF();
+        const { address, output } = bitcoin.payments.p2tr({
+            internalPubkey: toXOnly(importedKeypair.publicKey),
+            network: NETWORK
+        });
+        const walletImportedField = Object.assign({}, walletFileData.imported, {
+            [this.alias]: {
+                address,
+                WIF: wif,
+            }
+        });
+        walletFileData['imported'] = walletImportedField;
+        await jsonFileWriter(walletPath, walletFileData);
+        return {
+            success: true,
+            data: {
+                address,
+                alias: this.alias
+            }
+        }
+    }
+
+    async walletExists() {
+        if (await jsonFileExists(walletPath)) {
+            return true;
+        }
+    }
+}

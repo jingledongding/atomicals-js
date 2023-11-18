@@ -25,7 +25,7 @@ import { DownloadCommand } from "./commands/download-command";
 import { AddressInfoCommand } from "./commands/address-info-command";
 import { WalletInfoCommand } from "./commands/wallet-info-command";
 import { TransferInteractiveNftCommand } from "./commands/transfer-interactive-nft-command";
-import { WalletImportCommand } from "./commands/wallet-import-command";
+import { WalletImportCommand, WalletImportFromPrivateKeyCommand } from "./commands/wallet-import-command";
 import { AddressHistoryCommand } from "./commands/address-history-command";
 import { FileMap } from "./interfaces/filemap.interface";
 import { RenderPreviewsCommand } from "./commands/render-previews-command";
@@ -219,6 +219,18 @@ export class Atomicals implements APIInterface {
   static async walletImport(wif: string, alias: string): Promise<any> {
     try {
       const command: CommandInterface = new WalletImportCommand(wif, alias);
+      return command.run();
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.toString(),
+        error
+      }
+    }
+  }
+  static async walletImportFromPrivateKey(privatekey: string, alias: string): Promise<any> {
+    try {
+      const command: CommandInterface = new WalletImportFromPrivateKeyCommand(privatekey, alias);
       return command.run();
     } catch (error: any) {
       return {

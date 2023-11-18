@@ -272,6 +272,20 @@ program.command('wallet-import')
       console.log(error);
     }
   });
+  
+program.command('wallet-import-from-privateKey')
+  .description('Import a wallet by privatekey and assign it to provided alias')
+  .argument('<privateKey>', 'string')
+  .argument('<alias>', 'string')
+  .action(async (privateKey, alias, options) => {
+    try {
+      await validateWalletStorage();
+      await Atomicals.walletImportFromPrivateKey(privateKey, alias);
+      console.log('Success! wallet.json updated')
+    } catch (error) {
+      console.log(error);
+    }
+  });
 
 program.command('address-script')
   .description('Encodes an address or wallet alias as the hex output script')
