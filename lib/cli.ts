@@ -1604,8 +1604,8 @@ program.command('mint-dft-batch')
       console.log('\n')
       console.log('----------------------------------------------');
       console.log('----------------------------------------------');     
-      console.log('Current Mint wallet alias:', initialowner);
-      console.log('Current founding wallet alias:', options.funding ?? 'funding');
+      console.log('Next Mint wallet alias:', initialowner);
+      console.log('Next founding wallet alias:', options.funding ?? 'funding');
       console.log('----------------------------------------------');      
       console.log('----------------------------------------------');
       console.log('\n')
