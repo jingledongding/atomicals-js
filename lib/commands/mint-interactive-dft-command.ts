@@ -49,7 +49,7 @@ export class MintInteractiveDftCommand implements CommandInterface {
     const atomicalInfo = atomicalResponse.result;
     const atomicalDecorated = decorateAtomical(atomicalInfo);
 
-    console.log(globalInfo, atomicalDecorated);
+    // console.log(globalInfo, atomicalDecorated);
 
     if (!atomicalDecorated['$ticker'] || atomicalDecorated['$ticker'] != this.ticker) {
       throw new Error('Ticker being requested does not match the initialized decentralized FT mint: ' + atomicalDecorated)

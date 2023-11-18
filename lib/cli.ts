@@ -1502,21 +1502,67 @@ program.command('mint-dft')
   .option('--funding <string>', 'Use wallet alias wif key to be used for funding and change')
   .option('--satsbyte <number>', 'Satoshis per byte in fees', '15')
   .option('--disablechalk', 'Whether to disable the real-time chalked logging of each hash for Bitwork mining. Improvements mining performance to set this flag')
+  .option('--retry <number>', 'retry count', '3')
+  .option('--count <number>', 'mint count')
   .action(async (ticker, options) => {
-    try {
-      const walletInfo = await validateWalletStorage();
-      const config: ConfigurationInterface = validateCliInputs();
-      ticker = ticker.toLowerCase();
-      const atomicals = new Atomicals(ElectrumApi.createClient(process.env.ELECTRUMX_PROXY_BASE_URL || ''));
-      let walletRecord = resolveWalletAliasNew(walletInfo, options.initialowner, walletInfo.primary);
-      let fundingRecord = resolveWalletAliasNew(walletInfo, options.funding, walletInfo.funding);
-      const result: any = await atomicals.mintDftInteractive(walletRecord.address, ticker, fundingRecord.WIF, {
-        satsbyte: parseInt(options.satsbyte),
-        disableMiningChalk: options.disablechalk
-      });
-      handleResultLogging(result);
-    } catch (error) {
-      console.log(error);
+
+    function delay(time: number) {
+      return new Promise(resolve => setTimeout(() => resolve(true), time));
+    }
+    
+    let { retry, count } = options;
+    let failCount = 0;
+    let delayTime = 0;
+    let successCount = 0;
+    let mintCount = 0;
+
+    while (true) {
+      if ((!count && Number(retry) === failCount) || (count && Number(count) === mintCount)) {
+        console.log('----------------------------------------------');
+        console.log('----------------------------------------------');
+        console.log("Mint total count:", mintCount)
+        console.log("Failed count:", failCount)
+        console.log("Mint success count:", successCount)
+        console.log('----------------------------------------------');
+        console.log('----------------------------------------------');
+        console.log('\n')
+        return;
+      }
+
+      await delay(delayTime);
+      console.log('Start mint program...');
+      mintCount += 1;
+      try {
+        const walletInfo = await validateWalletStorage();
+        const config: ConfigurationInterface = validateCliInputs();
+        ticker = ticker.toLowerCase();
+        const atomicals = new Atomicals(ElectrumApi.createClient(process.env.ELECTRUMX_PROXY_BASE_URL || ''));
+        let walletRecord = resolveWalletAliasNew(walletInfo, options.initialowner, walletInfo.primary);
+        let fundingRecord = resolveWalletAliasNew(walletInfo, options.funding, walletInfo.funding);
+        const result: any = await atomicals.mintDftInteractive(walletRecord.address, ticker, fundingRecord.WIF, {
+          satsbyte: parseInt(options.satsbyte),
+          disableMiningChalk: options.disablechalk
+        });
+        handleResultLogging(result);
+        if (!result.success) {
+          failCount += 1;
+          delayTime += 1000;
+          console.log('############################################');
+          console.log('Delay: ', delayTime / 1000, 's for next retry...');
+          console.log('############################################');
+          console.log('\n')
+        } else {
+          successCount += 1;
+        }
+      } catch (error) {
+        failCount += 1;
+        delayTime += 1000;
+        console.log('############################################');
+        console.log('Delay: ', delayTime / 1000, 's for next retry...');
+        console.log('############################################');
+        console.log('\n')
+        console.log(error);
+      }
     }
   });
 
