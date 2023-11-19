@@ -66,7 +66,7 @@ export const getKeypairInfo = (childNode: any): KeyPairInfo => {
   return {
     address,
     tweakedChildNode,
-    childNodeXOnlyPubkey: childNode.publicKey,
+    childNodeXOnlyPubkey,
     output,
     childNode
   }
