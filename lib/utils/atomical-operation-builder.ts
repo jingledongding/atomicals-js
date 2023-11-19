@@ -598,7 +598,7 @@ export class AtomicalOperationBuilder {
         ////////////////////////////////////////////////////////////////////////
 
         // The scriptP2TR and hashLockP2TR will contain the utxo needed for the commit and now can be revealed
-        const utxoOfCommitAddress = await getFundingUtxo(this.options.electrumApi, scriptP2TR.address, fees.revealFeePlusOutputs as any, commitMinedWithBitwork, 5)
+        const utxoOfCommitAddress = await getFundingUtxo(this.options.electrumApi, fundingKeypair.address, fees.revealFeePlusOutputs as any, commitMinedWithBitwork, 5)
         commitTxid = utxoOfCommitAddress.txid;
         atomicalId = commitTxid + 'i0'; // Atomicals are always minted at the 0'th output
 
