@@ -44,22 +44,34 @@ export class WalletImportCommand implements CommandInterface {
 
         // Get the wif and the address and ensure they match
         const importedKeypair = ECPair.fromWIF(this.wif);
-        const { address, output } = bitcoin.payments.p2tr({
-            internalPubkey: toXOnly(importedKeypair.publicKey),
-            network: NETWORK
-        });
+   
+
+        const wif = importedKeypair.toWIF();
+
+        const { address: taproot } = bitcoin.payments.p2pkh({ pubkey: importedKeypair.publicKey });
+
+        const { address: segWit } = bitcoin.payments.p2wpkh({ pubkey: importedKeypair.publicKey });
+
+        const { address: segWit_p2sh } = bitcoin.payments.p2sh({
+            redeem: bitcoin.payments.p2wpkh({ pubkey: importedKeypair.publicKey }),
+          });
+
         const walletImportedField = Object.assign({}, walletFileData.imported, {
             [this.alias]: {
-                address,
-                WIF: this.wif
+                address: importedKeypair.publicKey.toString('hex'),
+                taproot: taproot,
+                segWit: segWit,
+                segWit_p2sh:segWit_p2sh,
+                WIF: wif,
             }
         });
+
         walletFileData['imported'] = walletImportedField;
         await jsonFileWriter(walletPath, walletFileData);
         return {
             success: true,
             data: {
-                address,
+                address: importedKeypair.publicKey.toString('hex'),
                 alias: this.alias
             }
         }
@@ -110,7 +122,7 @@ export class WalletImportFromPrivateKeyCommand implements CommandInterface {
 
         const walletImportedField = Object.assign({}, walletFileData.imported, {
             [this.alias]: {
-                address: taproot,
+                address: importedKeypair.publicKey.toString('hex'),
                 taproot: taproot,
                 segWit: segWit,
                 segWit_p2sh:segWit_p2sh,
@@ -124,7 +136,7 @@ export class WalletImportFromPrivateKeyCommand implements CommandInterface {
         return {
             success: true,
             data: {
-                address: taproot,
+                address: importedKeypair.publicKey.toString('hex'),
                 alias: this.alias
             }
         }
