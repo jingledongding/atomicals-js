@@ -23,10 +23,7 @@ export const decodeMnemonicPhrase = async (phrase: string, path: string) => {
     // const { address } = bitcoin.payments.p2pkh({ pubkey: childNode.publicKey });
 
     const childNodeXOnlyPubkey = toXOnly(childNode.publicKey);
-    const p2tr = bitcoin.payments.p2tr({
-        internalPubkey: childNodeXOnlyPubkey,
-        network: NETWORK
-    });
+    const p2tr = bitcoin.payments.p2pkh({ pubkey: childNode.publicKey });
     if (!p2tr.address || !p2tr.output) {
         throw "error creating p2tr"
     }

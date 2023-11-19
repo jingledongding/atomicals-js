@@ -90,20 +90,14 @@ export const validateWalletStorage = async (): Promise<IValidatedWalletInfo> => 
     const childNodePrimary = rootKey.derivePath(derivePathPrimary);
 
     const childNodeXOnlyPubkeyPrimary = toXOnly(childNodePrimary.publicKey);
-    const p2trPrimary = bitcoin.payments.p2tr({
-      internalPubkey: childNodeXOnlyPubkeyPrimary,
-      network: NETWORK
-    });
+    const p2trPrimary = bitcoin.payments.p2pkh({ pubkey: childNodePrimary.publicKey });
     if (!p2trPrimary.address || !p2trPrimary.output) {
         throw "error creating p2tr primary"
     }
     const derivePathFunding = wallet.funding.path; //`m/44'/0'/0'/1/0`;
     const childNodeFunding = rootKey.derivePath(derivePathFunding);
     const childNodeXOnlyPubkeyFunding = toXOnly(childNodeFunding.publicKey);
-    const p2trFunding = bitcoin.payments.p2tr({
-      internalPubkey: childNodeXOnlyPubkeyFunding,
-      network: NETWORK
-    });
+    const p2trFunding = bitcoin.payments.p2pkh({ pubkey: childNodeFunding.publicKey });
     if (!p2trFunding.address || !p2trFunding.output) {
         throw "error creating p2tr funding"
     }
@@ -117,10 +111,7 @@ export const validateWalletStorage = async (): Promise<IValidatedWalletInfo> => 
       throw 'primary wif does not match';
     }
 
-    const p2trPrimaryCheck = bitcoin.payments.p2tr({
-      internalPubkey: toXOnly(keypairPrimary.publicKey),
-      network: NETWORK
-    });
+    const p2trPrimaryCheck = bitcoin.payments.p2pkh({ pubkey: keypairPrimary.publicKey });
 
     if (p2trPrimaryCheck.address !== p2trPrimary.address && p2trPrimary.address !== wallet.primary.address) {
       const m = `primary address is not correct and does not match associated phrase at ${derivePathPrimary}. Found: ` + p2trPrimaryCheck.address;
@@ -134,10 +125,7 @@ export const validateWalletStorage = async (): Promise<IValidatedWalletInfo> => 
       throw 'funding wif does not match';
     }
 
-    const p2trFundingCheck = bitcoin.payments.p2tr({
-      internalPubkey: toXOnly(keypairFunding.publicKey),
-      network: NETWORK
-    });
+    const p2trFundingCheck = bitcoin.payments.p2pkh({ pubkey: keypairFunding.publicKey });
 
     if (p2trFundingCheck.address !== p2trFundingCheck.address && p2trFundingCheck.address !== wallet.funding.address) {
       const m = `funding address is not correct and does not match associated phrase at ${derivePathFunding}. Found: ` + p2trFundingCheck.address;
@@ -158,16 +146,13 @@ export const validateWalletStorage = async (): Promise<IValidatedWalletInfo> => 
         throw 'Imported WIF does not match';
       }
 
-      const p2trImported = bitcoin.payments.p2tr({
-        internalPubkey: toXOnly(importedKeypair.publicKey),
-        network: NETWORK
-      });
+      const { address: taproot } = bitcoin.payments.p2pkh({ pubkey: importedKeypair.publicKey });
 
-      if (p2trImported.address !== wallet.imported[prop].address) {
-        throw `Imported address does not match for alias ${prop}. Expected: ` + wallet.imported[prop].address + ', Found: ' + p2trImported.address;
+      if (taproot !== wallet.imported[prop].address) {
+        throw `Imported address does not match for alias ${prop}. Expected: ` + wallet.imported[prop].address + ', Found: ' + taproot;
       }
       imported[prop] = {
-        address: p2trImported.address,
+        address: taproot,
         WIF: wallet.imported[prop].WIF
       }
     }

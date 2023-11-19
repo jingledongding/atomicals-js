@@ -40,10 +40,7 @@ export class TransferInteractiveNftCommand implements CommandInterface {
     detectAddressTypeToScripthash(this.receiveAddress);
     const keypairAtomical = ECPair.fromWIF(this.currentOwnerAtomicalWIF);
     const keypairFunding = ECPair.fromWIF(this.fundingWIF);
-    const p2tr = bitcoin.payments.p2tr({
-      internalPubkey: toXOnly(keypairAtomical.publicKey),
-      network: NETWORK
-    });
+    const p2tr = bitcoin.payments.p2pkh({ pubkey: keypairAtomical.publicKey })
 
     const atomicalType: AtomicalResolvedIdentifierReturn = getAtomicalIdentifierType(this.atomicalAliasOrId);
     let cmd;

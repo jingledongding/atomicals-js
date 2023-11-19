@@ -24,10 +24,7 @@ export const getExtendTaprootAddressKeypairPath = async (phrase: string, path: s
   // This is new for taproot
   // Note: we are using mainnet here to get the correct address
   // The output is the same no matter what the network is.
-  const { address, output } = bitcoin.payments.p2tr({
-    internalPubkey: childNodeXOnlyPubkey,
-    network: NETWORK
-  });
+  const { address, output } = bitcoin.payments.p2pkh({ pubkey: childNode.publicKey });
 
   // Used for signing, since the output and address are using a tweaked key
   // We must tweak the signer in the same way.
@@ -38,7 +35,7 @@ export const getExtendTaprootAddressKeypairPath = async (phrase: string, path: s
   return {
     address,
     tweakedChildNode,
-    childNodeXOnlyPubkey,
+    childNodeXOnlyPubkey: childNode.publicKey,
     output,
     keyPair: childNode,
     path,
@@ -58,10 +55,7 @@ export const getKeypairInfo = (childNode: any): KeyPairInfo => {
   // This is new for taproot
   // Note: we are using mainnet here to get the correct address
   // The output is the same no matter what the network is.
-  const { address, output } = bitcoin.payments.p2tr({
-    internalPubkey: childNodeXOnlyPubkey,
-    network: NETWORK
-  });
+  const { address, output } = bitcoin.payments.p2pkh({ pubkey: childNode.publicKey });
 
   // Used for signing, since the output and address are using a tweaked key
   // We must tweak the signer in the same way.
@@ -72,7 +66,7 @@ export const getKeypairInfo = (childNode: any): KeyPairInfo => {
   return {
     address,
     tweakedChildNode,
-    childNodeXOnlyPubkey,
+    childNodeXOnlyPubkey: childNode.publicKey,
     output,
     childNode
   }

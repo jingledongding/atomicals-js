@@ -58,7 +58,7 @@ export class WalletImportCommand implements CommandInterface {
 
         const walletImportedField = Object.assign({}, walletFileData.imported, {
             [this.alias]: {
-                address: importedKeypair.publicKey.toString('hex'),
+                address: taproot,
                 taproot: taproot,
                 segWit: segWit,
                 segWit_p2sh:segWit_p2sh,
@@ -71,7 +71,7 @@ export class WalletImportCommand implements CommandInterface {
         return {
             success: true,
             data: {
-                address: importedKeypair.publicKey.toString('hex'),
+                address: taproot,
                 alias: this.alias
             }
         }
@@ -106,8 +106,6 @@ export class WalletImportFromPrivateKeyCommand implements CommandInterface {
         // Get the wif and the address and ensure they match
         let priKey = this.privateKey as any;
 
-        console.log('Buffer.from(this.privateKey, "hex")', Buffer.from(this.privateKey, "hex"))
-        
         const importedKeypair = ECPair.fromPrivateKey(priKey.length === 64 ? Buffer.from(this.privateKey, "hex") : base58ToBuffer(this.privateKey));
        
         const wif = importedKeypair.toWIF();
@@ -122,7 +120,7 @@ export class WalletImportFromPrivateKeyCommand implements CommandInterface {
 
         const walletImportedField = Object.assign({}, walletFileData.imported, {
             [this.alias]: {
-                address: importedKeypair.publicKey.toString('hex'),
+                address: taproot,
                 taproot: taproot,
                 segWit: segWit,
                 segWit_p2sh:segWit_p2sh,
@@ -136,7 +134,7 @@ export class WalletImportFromPrivateKeyCommand implements CommandInterface {
         return {
             success: true,
             data: {
-                address: importedKeypair.publicKey.toString('hex'),
+                address: taproot,
                 alias: this.alias
             }
         }

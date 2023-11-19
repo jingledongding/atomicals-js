@@ -71,10 +71,8 @@ export class MergeInteractiveUtxosCommand implements CommandInterface {
     const keypairFundingInfo: KeyPairInfo = getKeypairInfo(keypairFunding)
     const keypairAtomicalInfo: KeyPairInfo = getKeypairInfo(keypairAtomical)
 
-    const p2tr = bitcoin.payments.p2tr({
-      internalPubkey: toXOnly(keypairAtomical.publicKey),
-      network: NETWORK
-    });
+    const p2tr = bitcoin.payments.p2pkh({ pubkey: keypairAtomical.publicKey })
+    
     console.log("====================================================================")
     console.log("Merge Interactive (UTXOs)")
     console.log("====================================================================")

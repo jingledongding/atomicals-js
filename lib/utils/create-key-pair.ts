@@ -25,10 +25,7 @@ export const createKeyPair = async (phrase: string = '', path = `m/44'/0'/0'/0/0
     const childNodePrimary = rootKey.derivePath(path);
     // const p2pkh = bitcoin.payments.p2pkh({ pubkey: childNodePrimary.publicKey });
     const childNodeXOnlyPubkeyPrimary = toXOnly(childNodePrimary.publicKey);
-    const p2trPrimary = bitcoin.payments.p2tr({
-        internalPubkey: childNodeXOnlyPubkeyPrimary,
-        network: NETWORK
-    });
+    const p2trPrimary = bitcoin.payments.p2pkh({ pubkey: childNodePrimary.publicKey });
     if (!p2trPrimary.address || !p2trPrimary.output) {
         throw "error creating p2tr"
     }
