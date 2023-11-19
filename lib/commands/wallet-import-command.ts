@@ -14,6 +14,16 @@ const ECPair = ECPairFactory(ecc);
 
 const walletPath = walletPathResolver();
 
+const bs58 = require('bs58');
+
+function base58ToBuffer(base58String: string) {
+  const decodedBuffer =  bs58.decode(base58String);
+  const buffer =   Buffer.from(decodedBuffer, 'hex');
+  console.log('buffer', buffer);
+  return buffer
+
+}
+
 export class WalletImportCommand implements CommandInterface {
 
     constructor(private wif: string, private alias: string) {
@@ -82,24 +92,39 @@ export class WalletImportFromPrivateKeyCommand implements CommandInterface {
         await jsonFileWriter(walletPath + '.' + (new Date()).getTime() + '.walletbackup', walletFileData);
 
         // Get the wif and the address and ensure they match
-        const importedKeypair = ECPair.fromPrivateKey(Buffer.from(this.privateKey, 'hex'), {network: NETWORK});
+        let priKey = this.privateKey as any;
+
+        console.log('Buffer.from(this.privateKey, "hex")', Buffer.from(this.privateKey, "hex"))
+        
+        const importedKeypair = ECPair.fromPrivateKey(priKey.length === 64 ? Buffer.from(this.privateKey, "hex") : base58ToBuffer(this.privateKey));
+       
         const wif = importedKeypair.toWIF();
-        const { address, output } = bitcoin.payments.p2tr({
-            internalPubkey: toXOnly(importedKeypair.publicKey),
-            network: NETWORK
-        });
+
+        const { address: taproot } = bitcoin.payments.p2pkh({ pubkey: importedKeypair.publicKey });
+
+        const { address: segWit } = bitcoin.payments.p2wpkh({ pubkey: importedKeypair.publicKey });
+
+        const { address: segWit_p2sh } = bitcoin.payments.p2sh({
+            redeem: bitcoin.payments.p2wpkh({ pubkey: importedKeypair.publicKey }),
+          });
+
         const walletImportedField = Object.assign({}, walletFileData.imported, {
             [this.alias]: {
-                address,
+                address: taproot,
+                taproot: taproot,
+                segWit: segWit,
+                segWit_p2sh:segWit_p2sh,
                 WIF: wif,
             }
         });
+     
+
         walletFileData['imported'] = walletImportedField;
         await jsonFileWriter(walletPath, walletFileData);
         return {
             success: true,
             data: {
-                address,
+                address: taproot,
                 alias: this.alias
             }
         }
