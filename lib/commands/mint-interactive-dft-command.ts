@@ -15,6 +15,7 @@ import { AtomicalOperationBuilder } from "../utils/atomical-operation-builder";
 const tinysecp: TinySecp256k1Interface = require('tiny-secp256k1');
 initEccLib(tinysecp as any);
 const ECPair: ECPairAPI = ECPairFactory(tinysecp);
+
 export class MintInteractiveDftCommand implements CommandInterface {
   constructor(
     private electrumApi: ElectrumApiInterface,
@@ -22,6 +23,7 @@ export class MintInteractiveDftCommand implements CommandInterface {
     private ticker: string,
     private fundingWIF: string,
     private options: BaseRequestOptions,
+    private singleMintCount: number,
   ) {
     this.options = checkBaseRequestOptions(this.options)
     this.ticker = this.ticker.startsWith('$') ? this.ticker.substring(1) : this.ticker;
@@ -62,7 +64,9 @@ export class MintInteractiveDftCommand implements CommandInterface {
     if (atomicalDecorated['$mint_height'] > (globalInfo['height'] + 1)) {
       throw new Error(`Mint height is invalid. height=${globalInfo['height']}, $mint_height=${atomicalDecorated['$mint_height']}`)
     }
-    const perAmountMint = atomicalDecorated['$mint_amount'];
+    // const perAmountMint = atomicalDecorated['$mint_amount'];
+    console.log('singleMintCount', this.singleMintCount)
+    const perAmountMint = this.singleMintCount ?  Number(this.singleMintCount) : atomicalDecorated['$mint_amount'];
     if (perAmountMint <= 0 || perAmountMint >= 100000000) {
       throw new Error('Per amount mint must be > 0 and less than or equal to 100,000,000')
     }
@@ -81,7 +85,7 @@ export class MintInteractiveDftCommand implements CommandInterface {
       console.log(`There are already ${mint_count} mints of ${ticker} out of a max total of ${max_mints}.`)
     }
  
-    console.log('atomicalDecorated', atomicalResponse, atomicalDecorated);
+    // console.log('atomicalDecorated', atomicalResponse, atomicalDecorated);
     const atomicalBuilder = new AtomicalOperationBuilder({
       electrumApi: this.electrumApi,
       satsbyte: this.options.satsbyte,

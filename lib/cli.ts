@@ -1519,18 +1519,20 @@ program.command('mint-dft')
   .option('--retry <number>', 'retry count', '3')
   .option('--count <number>', 'mint count')
   .option('--mints <string>', 'Mints epigraph wallets')
+  .option('--singleMintCount, <number>', '单次mint大小')
   .action(async (ticker, options) => {
 
     function delay(time: number) {
       return new Promise(resolve => setTimeout(() => resolve(true), time));
     }
     
-    let { retry, count } = options;
+    let { retry, count, singleMintCount } = options;
     let failCount = 0;
     let delayTime = 0;
     let successCount = 0;
     let mintCount = 0;
 
+    console.log('singleMintCount', singleMintCount)
     while (true) {
       if ((!count && Number(retry) === failCount) || (count && Number(count) === mintCount)) {
         console.log('----------------------------------------------');
@@ -1557,7 +1559,7 @@ program.command('mint-dft')
         const result: any = await atomicals.mintDftInteractive(walletRecord.address, ticker, fundingRecord.WIF, {
           satsbyte: parseInt(options.satsbyte),
           disableMiningChalk: options.disablechalk
-        });
+        }, singleMintCount);
         handleResultLogging(result);
         if (!result.success) {
           failCount += 1;
@@ -1590,14 +1592,16 @@ program.command('mint-dft-batch')
   .option('--disablechalk', 'Whether to disable the real-time chalked logging of each hash for Bitwork mining. Improvements mining performance to set this flag')
   .option('--retry <number>', 'retry count', '3')
   .option('--count <number>', 'mint count')
+  .option('--singleMintCount <number>', '单次mint大小')
   .action(async (ticker, mints, options) => {
 
     function delay(time: number) {
       return new Promise(resolve => setTimeout(() => resolve(true), time));
     }
     
-    let { retry, count } = options;
+    let { retry, count, singleMintCount } = options;
  
+    console.log('singleMintCount', singleMintCount)
     const mintsInfos: any[] = [];
 
     for await (let initialowner of mints.split(',')) {
@@ -1660,7 +1664,7 @@ program.command('mint-dft-batch')
           const result: any = await atomicals.mintDftInteractive(walletRecord.address, ticker, fundingRecord.WIF, {
             satsbyte: parseInt(options.satsbyte),
             disableMiningChalk: options.disablechalk
-          });
+          }, singleMintCount);
           handleResultLogging(result);
           if (!result.success) {
             failCount += 1;

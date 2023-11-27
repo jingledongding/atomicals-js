@@ -79,7 +79,7 @@ export class TransferInteractiveNftCommand implements CommandInterface {
     console.log("Requested fee rate satoshis/byte:", this.satsbyte);
     const atomicalInfo = await this.electrumApi.atomicalsGetLocation(atomicalId);
     const atomicalDecorated = decorateAtomical(atomicalInfo.result);
-    console.log(JSON.stringify(atomicalDecorated, null, 2))
+    // console.log(JSON.stringify(atomicalDecorated, null, 2))
     // Check to make sure that the location is controlled by the same address as supplied by the WIF
     if (!atomicalDecorated.location_info_obj || !atomicalDecorated.location_info_obj.locations || !atomicalDecorated.location_info_obj.locations.length || atomicalDecorated.location_info_obj.locations[0].address !== p2tr.address) {
       throw `Atomical is controlled by a different address (${atomicalDecorated.location_info_obj.locations[0].address}) than the provided wallet (${p2tr.address})`;

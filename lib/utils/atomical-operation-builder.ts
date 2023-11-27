@@ -13,12 +13,13 @@ import {
     Psbt,
 } from "bitcoinjs-lib";
 initEccLib(tinysecp as any);
-import { AtomicalsPayload, NETWORK, calculateFundsRequired, getAndCheckAtomicalInfo, prepareCommitRevealConfig, prepareFilesDataAsObject } from "../commands/command-helpers";
+import { AtomicalsPayload, NETWORK, getAndCheckAtomicalInfo, prepareCommitRevealConfig, prepareFilesDataAsObject } from "../commands/command-helpers";
 import { getFundingUtxo } from "./select-funding-utxo";
 import { sleeper } from "./utils";
 import { witnessStackToScriptWitness } from "../commands/witness_stack_to_script_witness";
 import { IInputUtxoPartial } from "../types/UTXO.interface";
 import { IWalletRecord } from "./validate-wallet-storage";
+
 const ECPair: ECPairAPI = ECPairFactory(tinysecp);
 const DEFAULT_SATS_BYTE = 10;
 const DEFAULT_SATS_ATOMICAL_UTXO = 1000;
@@ -495,6 +496,8 @@ export class AtomicalOperationBuilder {
         }
 
 
+      
+
         let unixtime = Math.floor(Date.now() / 1000);
         let nonce = Math.floor(Math.random() * 10000000);
         let noncesGenerated = 0;
@@ -514,16 +517,16 @@ export class AtomicalOperationBuilder {
             console.log('Payload Encoded: ', copiedData);
         }
 
-        const mockBaseCommitForFeeCalculation: { scriptP2TR, hashLockP2TR } = prepareCommitRevealConfig(this.options.opType, fundingKeypair, mockAtomPayload)
+        const mockBaseCommitForFeeCalculation: { scriptP2TR, hashLockP2TR } = prepareCommitRevealConfig(this.options.opType, fundingKeypair, mockAtomPayload);
+        
         const fees: FeeCalculations = this.calculateFeesRequiredForAccumulatedCommitAndReveal(mockBaseCommitForFeeCalculation.hashLockP2TR.redeem.output.length);
-        ////////////////////////////////////////////////////////////////////////
         // Begin Reveal Transaction
         ////////////////////////////////////////////////////////////////////////
         if (performBitworkForCommitTx) {
             copiedData['args'] = copiedData['args'] || {};
             copiedData['args']['nonce'] = 9999999; // placeholder for only estimating tx deposit fee size
             copiedData['args']['time'] = unixtime; // placeholder for only estimating tx deposit fee size
-            const fundingUtxo = await getFundingUtxo(this.options.electrumApi, fundingKeypair.address, fees.commitAndRevealFeePlusOutputs)
+            const fundingUtxo = await getFundingUtxo(this.options.electrumApi, fundingKeypair.address, fees.commitAndRevealFeePlusOutputs, fundingKeypairRaw, fees, this.options.satsbyte, scriptP2TR)
             printBitworkLog(this.bitworkInfoCommit as any, true);
             this.options.electrumApi.close();
             do {
@@ -592,13 +595,33 @@ export class AtomicalOperationBuilder {
             scriptP2TR = baseCommit.scriptP2TR;
             hashLockP2TR = baseCommit.hashLockP2TR;
         }
+     
+        // if (!(await this.broadcastWithRetries(finalPsbtHex))) {
+        //     console.log('Error sending', finalPsbtHex.getId(), finalPsbtHex);
+        //     throw new Error('Unable to broadcast commit transaction after attempts: ' + finalPsbtHex.getId());
+        // } else {
+        //     console.log('Success sent tx: ', finalPsbtHex.getId());
+        // }
+
+
+        // const {scripthash} = detectAddressTypeToScripthash(fundingKeypair.address);
+        // console.log(scripthash);
+
+        // const balance = await this.options.electrumApi.balance(scripthash);
+        // console.log('balance', balance);
+        // const history = await this.options.electrumApi.history(scripthash);
+        // console.log('history', history);
+
+        // const tx = await this.options.electrumApi.getTx(history[0].tx_hash);
+
+        // const p2trPrimary = bitcoin.payments.p2pkh({ pubkey: fundingKeypairRaw.publicKey });
 
         ////////////////////////////////////////////////////////////////////////
         // Begin Reveal Transaction
         ////////////////////////////////////////////////////////////////////////
 
         // The scriptP2TR and hashLockP2TR will contain the utxo needed for the commit and now can be revealed
-        const utxoOfCommitAddress = await getFundingUtxo(this.options.electrumApi, scriptP2TR.address, fees.revealFeePlusOutputs as any, commitMinedWithBitwork, 5)
+        const utxoOfCommitAddress = await getFundingUtxo(this.options.electrumApi, scriptP2TR.address, fees.revealFeePlusOutputs as any, fundingKeypairRaw, fees, this.options.satsbyte, scriptP2TR, commitMinedWithBitwork, 5)
         commitTxid = utxoOfCommitAddress.txid;
         atomicalId = commitTxid + 'i0'; // Atomicals are always minted at the 0'th output
 

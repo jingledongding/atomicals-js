@@ -104,11 +104,17 @@ export class ElectrumApiMock implements ElectrumApiInterface {
     public async serverVersion(): Promise<any> {
         return "test mock"
     }
+    public async fee(): Promise<any> {
+        return "fee"
+    }
     public async broadcast(rawtx: string): Promise<any> {
         return "send"
     }
     public async history(scripthash: string): Promise<any> {
         return "history"
+    }
+    public async balance(scripthash: string): Promise<any> {
+        return "balance"
     }
     public async atomicalsGet(atomicalAliasOrId: string | number): Promise<any> {
         return "atomicalsGet"

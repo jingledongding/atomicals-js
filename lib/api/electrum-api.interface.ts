@@ -20,7 +20,9 @@ export interface ElectrumApiInterface {
     serverVersion: () => Promise<any>;
     broadcast: (rawtx: string) => Promise<any>;
     history: (scripthash: string) => Promise<any>;
+    balance: (scripthash: string) => Promise<any>;
     dump: () => Promise<any>;
+    fee: (n: number) => Promise<any>;
     // Atomicals API
     atomicalsGetGlobal: (hashes: number) => Promise<any>;
     atomicalsGet: (atomicalAliasOrId: string | number) => Promise<any>;

@@ -174,6 +174,16 @@ export class ElectrumApi implements ElectrumApiInterface {
         });
         return p;
     }
+    public async fee(block: number): Promise<any> {
+        const p = new Promise((resolve, reject) => {
+            this.call('blockchain.estimatefee', [block]).then(function (result: any) {
+                resolve(result);
+            }).catch((error) => {
+                reject(error);
+            })
+        });
+        return p;
+    }
 
     public async broadcast(rawtx: string): Promise<any> {
         const p = new Promise((resolve, reject) => {
@@ -304,6 +314,21 @@ export class ElectrumApi implements ElectrumApiInterface {
                 console.log('error ', error)
                 reject(error);
             })
+        });
+        return p;
+    }
+
+    public async balance(scripthash: string): Promise<any> {
+
+        const p = new Promise((resolve, reject) => {
+            this.call("blockchain.scripthash.get_balance", [scripthash])
+              .then(function (result: any) {
+                resolve(result);
+              })
+              .catch((error) => {
+                console.log("error ", error);
+                reject(error);
+              });
         });
         return p;
     }
